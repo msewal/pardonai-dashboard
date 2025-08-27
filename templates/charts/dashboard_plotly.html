@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Grafik Dashboard{% endblock %}
+{% block breadcrumb %}Grafik Dashboard{% endblock %}
+
+{% block content %}
+<div class="screen" style="display:grid; gap:20px;">
+
+  <!-- Üst kısım: Yan panel ve dört ana grafik -->
+  <div class="card" style="padding:0;">
+    <!-- aynen önceki gibi yan panel ve 4 grafik -->
+    …
+  </div>
+
+  <!-- Alt kısım: Saçılım ve Histogram grafikleri -->
+  <div class="card">
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Tıklama vs Toplam Kâr</h5>
+        <div id="chart-scatter-cp"></div>
+      </div>
+      <div class="col-md-6">
+        <h5>Satış vs Birim Kâr</h5>
+        <div id="chart-scatter-su"></div>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Kâr / Click Dağılımı</h5>
+        <div id="chart-hist-ppc"></div>
+      </div>
+      <div class="col-md-6">
+        <h5>Birim Kâr Dağılımı</h5>
+        <div id="chart-hist-unit"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Django verilerini güvenli şekilde göm -->
+{{ scatter_cp|safe|json_script:"scatter-cp-data" }}
+{{ scatter_su|safe|json_script:"scatter-su-data" }}
+{{ hist_ppc|safe|json_script:"hist-ppc-data" }}
+{{ hist_unit|safe|json_script:"hist-unit-data" }}
+
+<!-- Plotly CDN -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+  // Yeni grafikleri çiz
+  var scatter_cp = JSON.parse(document.getElementById('scatter-cp-data').textContent);
+  var scatter_su = JSON.parse(document.getElementById('scatter-su-data').textContent);
+  var hist_ppc   = JSON.parse(document.getElementById('hist-ppc-data').textContent);
+  var hist_unit  = JSON.parse(document.getElementById('hist-unit-data').textContent);
+
+  Plotly.newPlot('chart-scatter-cp', scatter_cp.data, scatter_cp.layout);
+  Plotly.newPlot('chart-scatter-su', scatter_su.data, scatter_su.layout);
+  Plotly.newPlot('chart-hist-ppc',   hist_ppc.data,   hist_ppc.layout);
+  Plotly.newPlot('chart-hist-unit',  hist_unit.data,  hist_unit.layout);
+</script>
+{% endblock %}

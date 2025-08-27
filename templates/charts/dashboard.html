@@ -1,0 +1,147 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grafikler</title>
+
+  <!-- CSS -->
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+</head>
+<body class="index-page">
+
+<div class="container-fluid mt-4">
+  <button class="btn btn-outline-secondary mb-2"
+          data-bs-toggle="collapse" data-bs-target="#sidebar">
+    ☰ Filtreler
+  </button>
+
+  <div class="row">
+    <!-- Sidebar -->
+    <nav id="sidebar" class="col-md-2 collapse show">
+      <div class="list-group">
+        <button class="list-group-item chart-link" data-target="chartClicks">Tıklama & Satış</button>
+        <button class="list-group-item chart-link" data-target="chartRatio">Click/Sales Oranı</button>
+        <button class="list-group-item chart-link" data-target="chartProfit">Toplam Kâr</button>
+        <button class="list-group-item chart-link" data-target="chartPPC">Kâr / Click</button>
+      </div>
+    </nav>
+
+    <!-- İçerik -->
+    <main class="col-md-10">
+      <div id="chartClicks" class="chart-container mb-4">
+        <canvas id="clickSalesChart"></canvas>
+      </div>
+      <div id="chartRatio" class="chart-container mb-4" style="display:none;">
+        <canvas id="ratioChart"></canvas>
+      </div>
+      <div id="chartProfit" class="chart-container mb-4" style="display:none;">
+        <canvas id="profitChart"></canvas>
+      </div>
+      <div id="chartPPC" class="chart-container mb-4" style="display:none;">
+        <canvas id="ppcChart"></canvas>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Django’dan gelen verileri güvenli JSON olarak göm -->
+{{ names            |json_script:"names-data" }}
+{{ clicks           |json_script:"clicks-data" }}
+{{ sales            |json_script:"sales-data" }}
+{{ click_sales_ratio|json_script:"ratio-data" }}
+{{ total_profit     |json_script:"profit-data" }}
+{{ profit_per_click |json_script:"ppc-data" }}
+
+<!-- Kütüphaneler -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'vendor/aos/aos.js' %}"></script>
+<script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
+<script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
+<script src="{% static 'vendor/imagesloaded/imagesloaded.pkgd.min.js' %}"></script>
+<script src="{% static 'vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+<script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+
+<script>
+// Sidebar butonlarıyla geçiş
+document.querySelectorAll('.chart-link').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chart-container').forEach(div => div.style.display = 'none');
+    document.getElementById(btn.dataset.target).style.display = 'block';
+  });
+});
+
+// JSON verilerini oku
+const names           = JSON.parse(document.getElementById('names-data').textContent);
+const clicks          = JSON.parse(document.getElementById('clicks-data').textContent);
+const sales           = JSON.parse(document.getElementById('sales-data').textContent);
+const clickSalesRatio = JSON.parse(document.getElementById('ratio-data').textContent);
+const totalProfit     = JSON.parse(document.getElementById('profit-data').textContent);
+const profitPerClick  = JSON.parse(document.getElementById('ppc-data').textContent);
+
+// Grafikler
+new Chart('clickSalesChart', {
+  type : 'bar',
+  data : {
+    labels   : names,
+    datasets : [
+      { label: 'Tıklama', data: clicks, backgroundColor: 'rgba(54,162,235,0.5)' },
+      { label: 'Satış',   data: sales,  backgroundColor: 'rgba(255,206,86,0.5)' }
+    ]
+  },
+  options : { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart('ratioChart', {
+  type : 'line',
+  data : {
+    labels   : names,
+    datasets : [{
+      label       : 'Click/Sales',
+      data        : clickSalesRatio,
+      borderColor : 'rgba(153,102,255,1)',
+      tension     : 0.4,
+      fill        : false
+    }]
+  },
+  options : { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart('profitChart', {
+  type : 'bar',
+  data : {
+    labels   : names,
+    datasets : [{
+      label           : 'Toplam Kâr',
+      data            : totalProfit,
+      backgroundColor : 'rgba(75,192,192,0.6)'
+    }]
+  },
+  options : { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart('ppcChart', {
+  type : 'line',
+  data : {
+    labels   : names,
+    datasets : [{
+      label       : 'Kâr / Click',
+      data        : profitPerClick,
+      borderColor : 'rgba(255,99,132,1)',
+      tension     : 0.4,
+      fill        : false
+    }]
+  },
+  options : { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+</script>
+</body>
+</html>
